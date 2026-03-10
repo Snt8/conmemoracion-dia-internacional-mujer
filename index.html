@@ -4,109 +4,61 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>8M — Día Internacional de la Mujer</title>
-
-<!-- 
-  ═══════════════════════════════════════════════════════
-  FUENTES DE GOOGLE FONTS
-  Playfair Display = títulos elegantes con serif
-  Cormorant Garamond = versos del poema, ligero e italiano
-  ═══════════════════════════════════════════════════════
--->
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
 
 <style>
-
-/* ════════════════════════════════════════════════
-   RESET Y VARIABLES GLOBALES
-   Las variables (--nombre) nos permiten reutilizar
-   colores en todo el archivo sin repetirlos
-   ════════════════════════════════════════════════ */
-*, *::before, *::after {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box; /* el padding no agranda el elemento */
-}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --negro:  #0d0608;   /* fondo principal */
-  --crema:  #f5ece0;   /* texto principal */
-  --rosa:   #c0392b;   /* acento rojo-rosa */
-  --dorado: #c9952a;   /* acento dorado */
-  --rubor:  #e8c4b0;   /* rosa pálido para cursivas */
+  --negro:  #0d0608;
+  --crema:  #f5ece0;
+  --rosa:   #c0392b;
+  --dorado: #c9952a;
+  --rubor:  #e8c4b0;
 }
 
 body {
   background: var(--negro);
   color: var(--crema);
-  overflow-x: hidden;
-
-  /* Ocultamos el scroll normal porque nosotros
-     lo vamos a controlar con JS para los efectos */
-  overflow-y: hidden;
+  overflow: hidden;
   height: 100vh;
   width: 100vw;
 }
 
-
-/* ════════════════════════════════════════════════
-   PANTALLA 1: INTRO
-   Ocupa toda la pantalla (100vw x 100vh)
-   Está fija mientras ocurre la animación de entrada
-   ════════════════════════════════════════════════ */
+/* ── INTRO ── */
 #intro {
-  position: fixed;      /* fija en pantalla, no se mueve con scroll */
-  inset: 0;             /* shorthand de top/right/bottom/left: 0 */
-  z-index: 100;         /* encima de todo */
+  position: fixed;
+  inset: 0;
+  z-index: 100;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  pointer-events: none; /* no bloquea clicks cuando es transparente */
-
-  /* opacity y transform son las dos propiedades más eficientes
-     para animar — el navegador las maneja en la GPU */
+  pointer-events: none;
   opacity: 1;
-  transition: opacity 1.2s ease; /* fade out suave al salir */
+  transition: opacity 1.2s ease;
 }
+#intro.oculto { opacity: 0; pointer-events: none; }
 
-/* Cuando JS le pone la clase .oculto, desaparece */
-#intro.oculto {
-  opacity: 0;
-  pointer-events: none;
-}
+#canvas-flores { position: absolute; inset: 0; pointer-events: none; }
 
-/* El canvas donde dibujamos las flores con JS */
-#canvas-flores {
-  position: absolute; /* se pone encima dentro del #intro */
-  inset: 0;
-  pointer-events: none;
-}
-
-/* Texto del intro */
 #texto-intro {
-  position: relative;   /* para que quede sobre el canvas */
+  position: relative;
   z-index: 10;
   text-align: center;
-  
-  /* Empieza invisible y abajo, luego sube */
   opacity: 0;
   transform: translateY(30px);
-  
-  /* La animación fadeUp dura 1.2s, espera 0.5s antes de empezar */
   animation: fadeUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
-  /* "forwards" = al terminar, mantén el estado final (visible) */
 }
-
 #texto-intro .etiqueta {
   font-family: 'Cormorant Garamond', serif;
-  font-size: clamp(11px, 1.4vw, 14px); /* clamp(min, ideal, max) */
+  font-size: clamp(11px, 1.4vw, 14px);
   letter-spacing: 0.45em;
   text-transform: uppercase;
   color: var(--rosa);
   font-weight: 300;
   margin-bottom: 20px;
 }
-
 #texto-intro h1 {
   font-family: 'Playfair Display', serif;
   font-size: clamp(26px, 4.5vw, 56px);
@@ -116,25 +68,15 @@ body {
   max-width: 700px;
   padding: 0 24px;
 }
-
-#texto-intro h1 em {
-  font-style: italic;
-  color: var(--rubor);
-}
-
-/* Línea decorativa dorada debajo del título */
+#texto-intro h1 em { font-style: italic; color: var(--rubor); }
 #texto-intro .linea {
   width: 80px;
   height: 1px;
   background: linear-gradient(90deg, transparent, var(--dorado), transparent);
   margin: 28px auto 0;
-  
-  /* scaleX(0) = invisible, luego se expande */
   transform: scaleX(0);
   animation: expandir 1s ease 1.5s forwards;
 }
-
-/* Instrucción de scroll */
 #texto-intro .scroll-hint {
   font-family: 'Cormorant Garamond', serif;
   font-size: 13px;
@@ -143,56 +85,47 @@ body {
   text-transform: uppercase;
   margin-top: 40px;
   font-style: italic;
-  
   opacity: 0;
-  animation: fadeUp 1s ease 2.5s forwards,
-             /* parpadeo suave e infinito después de aparecer */
-             parpadeo 2.5s ease 3.5s infinite;
+  animation: fadeUp 1s ease 2.5s forwards, parpadeo 2.5s ease 3.5s infinite;
 }
 
-
-/* ════════════════════════════════════════════════
-   PANTALLA 2: POEMA
-   También fija, detrás del intro (z-index menor)
-   Se hace visible cuando el intro desaparece
-   ════════════════════════════════════════════════ */
+/* ── PANTALLA POEMA ── */
 #poema-pantalla {
   position: fixed;
   inset: 0;
   z-index: 50;
   display: flex;
-  align-items: center;
+  align-items: flex-start;  /* alineado arriba — el JS controla el offset */
   justify-content: center;
-  overflow: hidden;
+  overflow: hidden;         /* lo que sale del viewport queda oculto */
 }
-
-/* Fondo con viñeta (oscurece los bordes para profundidad) */
 #poema-pantalla::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at center,
-    transparent 40%,
-    rgba(13,6,8,0.85) 100%
-  );
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(13,6,8,0.85) 100%);
   pointer-events: none;
   z-index: 1;
 }
 
-/* Contenedor que mueve el poema verticalmente según el scroll */
+/*
+  #poema-inner: el bloque completo del poema.
+  Empieza debajo de la pantalla (translateY = 100vh).
+  JS calcula cuánto tiene que viajar para que todo quepa:
+  viaje = alturaContenido - alturaVentana + padding
+  Así nunca se corta ni arriba ni abajo.
+*/
 #poema-inner {
   position: relative;
   z-index: 2;
   width: 100%;
   max-width: 660px;
-  padding: 0 32px;
+  padding: 60px 32px 80px; /* padding top/bottom para que no quede pegado al borde */
   text-align: center;
-  
-  /* Empieza muy abajo, JS lo irá subiendo con transform */
-  transform: translateY(80vh);
+  will-change: transform;  /* hint al navegador para optimizar en GPU */
 }
 
-/* Línea divisora arriba del poema */
+/* ── DIVISOR ── */
 .divisor {
   display: flex;
   align-items: center;
@@ -202,13 +135,9 @@ body {
   transform: scaleX(0.3);
   transition: opacity 0.8s ease, transform 0.8s ease;
 }
-.divisor.visible {
-  opacity: 1;
-  transform: scaleX(1);
-}
+.divisor.visible { opacity: 1; transform: scaleX(1); }
 .divisor-linea {
-  flex: 1;
-  height: 1px;
+  flex: 1; height: 1px;
   background: linear-gradient(90deg, transparent, rgba(201,149,42,0.5));
 }
 .divisor-linea:last-child {
@@ -221,36 +150,17 @@ body {
   flex-shrink: 0;
 }
 
-
-/* ════════════════════════════════════════════════
-   ESTROFAS DEL POEMA
-   Cada .estrofa empieza invisible (opacity:0)
-   y desplazada abajo (translateY(40px))
-   Cuando JS le da la clase .visible, aparece suavemente
-   ════════════════════════════════════════════════ */
+/* ── ESTROFAS ── */
 .estrofa {
   margin-bottom: 52px;
   opacity: 0;
-  transform: translateY(40px);
-  
-  /* transition = la transición ocurre cuando cambian opacity o transform */
+  transform: translateY(30px);
   transition: opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
 }
+.estrofa.visible  { opacity: 1; transform: translateY(0); }
+.estrofa.saliendo { opacity: 0; transform: translateY(-25px); }
 
-/* Cuando JS le agrega la clase .visible, activa la transición */
-.estrofa.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Cuando JS le agrega la clase .saliendo, desaparece hacia arriba */
-.estrofa.saliendo {
-  opacity: 0;
-  transform: translateY(-30px);
-}
-
-/* Versos normales */
 .verso {
   font-family: 'Cormorant Garamond', serif;
   font-size: clamp(18px, 2.8vw, 24px);
@@ -258,17 +168,12 @@ body {
   color: var(--crema);
   font-weight: 300;
 }
-.verso em {
-  font-style: italic;
-  color: var(--rubor);
-}
+.verso em   { font-style: italic; color: var(--rubor); }
 .verso strong {
   font-family: 'Playfair Display', serif;
-  font-weight: 700;
-  color: #fff;
+  font-weight: 700; color: #fff;
 }
 
-/* Verso especial con barra lateral roja */
 .verso-destacado {
   font-family: 'Playfair Display', serif;
   font-size: clamp(20px, 3.2vw, 28px);
@@ -289,17 +194,14 @@ body {
   border-radius: 2px;
 }
 
-/* Cierre del poema */
+/* ── CIERRE ── */
 .cierre {
   margin-top: 20px;
   opacity: 0;
   transform: translateY(30px);
   transition: opacity 1s ease, transform 1s ease;
 }
-.cierre.visible {
-  opacity: 1;
-  transform: translateY(0);
-}
+.cierre.visible  { opacity: 1; transform: translateY(0); }
 .cierre-titulo {
   font-family: 'Playfair Display', serif;
   font-size: clamp(36px, 6vw, 64px);
@@ -317,59 +219,35 @@ body {
   font-style: italic;
 }
 
-
-/* ════════════════════════════════════════════════
-   BARRA DE PROGRESO
-   Línea fina en la derecha que indica cuánto
-   del poema hemos "leído"
-   ════════════════════════════════════════════════ */
+/* ── BARRA PROGRESO ── */
 #barra-progreso {
   position: fixed;
   right: 0; top: 0;
-  width: 2px;
-  height: 0%;           /* JS actualiza esto según el scroll */
+  width: 2px; height: 0%;
   background: linear-gradient(180deg, var(--rosa), var(--dorado));
   z-index: 200;
   transition: height 0.1s linear;
 }
 
-
-/* ════════════════════════════════════════════════
-   KEYFRAMES
-   Definen los estados inicio → fin de cada animación
-   ════════════════════════════════════════════════ */
-
-/* Sube desde abajo y aparece */
+/* ── KEYFRAMES ── */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(30px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
-/* Expande horizontalmente desde el centro */
 @keyframes expandir {
   from { transform: scaleX(0); opacity: 0; }
   to   { transform: scaleX(1); opacity: 1; }
 }
-
-/* Parpadeo suave para el "scroll ↓" */
 @keyframes parpadeo {
   0%, 100% { opacity: 0.35; }
-  50%       { opacity: 0.7; }
+  50%       { opacity: 0.7;  }
 }
-
 </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════
-     ESTRUCTURA HTML: dos "pantallas" fijas
-     ══════════════════════════════════════════ -->
-
-<!-- PANTALLA 1: Intro con flores -->
 <div id="intro">
-  <!-- Canvas = lienzo en blanco donde JS dibuja las flores -->
   <canvas id="canvas-flores"></canvas>
-
   <div id="texto-intro">
     <p class="etiqueta">8 de Marzo · 2026</p>
     <h1>Conmemorando el<br><em>Día Internacional<br>de la Mujer</em></h1>
@@ -378,10 +256,8 @@ body {
   </div>
 </div>
 
-<!-- Barra de progreso lateral derecha -->
 <div id="barra-progreso"></div>
 
-<!-- PANTALLA 2: El poema -->
 <div id="poema-pantalla">
   <div id="poema-inner">
 
@@ -391,7 +267,6 @@ body {
       <div class="divisor-linea"></div>
     </div>
 
-    <!-- Cada .estrofa empieza oculta, JS la hace visible según el scroll -->
     <div class="estrofa">
       <p class="verso">
         Hubo manos que tejieron el silencio<br>
@@ -443,12 +318,6 @@ body {
       </p>
     </div>
 
-    <!-- ══ NUEVAS ESTROFAS ══════════════════════════════════
-         Agregadas al poema original. El JS las detecta
-         automáticamente via querySelectorAll('.estrofa'),
-         no hace falta tocar nada más que el SCROLL_TOTAL.
-         ══════════════════════════════════════════════════ -->
-
     <div class="estrofa">
       <p class="verso">
         Ser mujer no es solo una fecha<br>
@@ -485,287 +354,218 @@ body {
 
 
 <script>
-/* ════════════════════════════════════════════════════════════
-   PARTE 1: FLORES EN CANVAS
-   
-   Un <canvas> es una pantalla en blanco donde dibujamos con JS.
-   Creamos objetos Flor que orbitan al centro, y al primer scroll
-   se dispersan hacia afuera con física simple (velocidad + gravedad).
-   ════════════════════════════════════════════════════════════ */
-
+/* ── FLORES ── */
 const canvas = document.getElementById('canvas-flores');
-const ctx    = canvas.getContext('2d'); // contexto 2D = funciones de dibujo
-
-let W, H; // ancho y alto (se actualizan al redimensionar)
-
+const ctx    = canvas.getContext('2d');
+let W, H;
 function redimensionar() {
   W = canvas.width  = window.innerWidth;
   H = canvas.height = window.innerHeight;
 }
 redimensionar();
-window.addEventListener('resize', redimensionar);
+window.addEventListener('resize', () => { redimensionar(); calcularViaje(); });
 
-
-/* ── Clase Flor ──────────────────────────────────────
-   Una clase es una plantilla para crear muchos objetos.
-   Cada flor tiene su propia posición, velocidad y color.
-   ──────────────────────────────────────────────────── */
 class Flor {
-  constructor() {
-    this.iniciarOrbita(); // empieza girando al centro
-  }
-
-  /* FASE ÓRBITA: la flor gira alrededor del centro de pantalla */
+  constructor() { this.iniciarOrbita(); }
   iniciarOrbita() {
-    this.fase    = 'orbita';
-    this.angulo  = Math.random() * Math.PI * 2; // posición inicial en el círculo
-    this.radio   = 60  + Math.random() * 190;   // qué tan lejos del centro
-    this.velAng  = (0.004 + Math.random() * 0.008) // velocidad angular
-                   * (Math.random() > 0.5 ? 1 : -1); // dirección aleatoria
-    this.x       = W / 2 + Math.cos(this.angulo) * this.radio;
-    this.y       = H / 2 + Math.sin(this.angulo) * this.radio;
-    this.tamanio = 5 + Math.random() * 11;
+    this.fase     = 'orbita';
+    this.angulo   = Math.random() * Math.PI * 2;
+    this.radio    = 60 + Math.random() * 190;
+    this.velAng   = (0.004 + Math.random() * 0.008) * (Math.random() > 0.5 ? 1 : -1);
+    this.x        = W / 2 + Math.cos(this.angulo) * this.radio;
+    this.y        = H / 2 + Math.sin(this.angulo) * this.radio;
+    this.tamanio  = 5 + Math.random() * 11;
     this.rotacion = Math.random() * Math.PI * 2;
-    this.spin    = (Math.random() - 0.5) * 0.025;
+    this.spin     = (Math.random() - 0.5) * 0.025;
     this.opacidad = 0.35 + Math.random() * 0.5;
-    /* hsl(tono, saturación, luminosidad) — más fácil de controlar que rgb */
-    this.color   = Math.random() > 0.3
+    this.color    = Math.random() > 0.3
       ? `hsl(${352 + Math.random()*18}, 62%, ${42 + Math.random()*22}%)`
       : `hsl(${36  + Math.random()*14}, 68%, ${48 + Math.random()*22}%)`;
   }
-
-  /* FASE DISPERSIÓN: la flor sale volando desde su posición actual */
   iniciarDispersion() {
-    this.fase = 'dispersion';
-    // Dirección aleatoria (ángulo entre 0 y 360°)
-    const angSalida = Math.random() * Math.PI * 2;
-    const vel       = 4 + Math.random() * 9;
-    this.vx         = Math.cos(angSalida) * vel; // velocidad horizontal
-    this.vy         = Math.sin(angSalida) * vel - 3; // velocidad vertical (con impulso arriba)
-    this.gravedad   = 0.05 + Math.random() * 0.05; // fuerza que la jala hacia abajo
-    this.spin       = (Math.random() - 0.5) * 0.14; // giro rápido al salir
+    this.fase     = 'dispersion';
+    const ang     = Math.random() * Math.PI * 2;
+    const vel     = 4 + Math.random() * 9;
+    this.vx       = Math.cos(ang) * vel;
+    this.vy       = Math.sin(ang) * vel - 3;
+    this.gravedad = 0.05 + Math.random() * 0.05;
+    this.spin     = (Math.random() - 0.5) * 0.14;
   }
-
-  /* Se llama ~60 veces por segundo para actualizar posición */
   actualizar() {
     if (this.fase === 'orbita') {
-      // Avanzar el ángulo = girar en círculo
       this.angulo   += this.velAng;
       this.x         = W / 2 + Math.cos(this.angulo) * this.radio;
       this.y         = H / 2 + Math.sin(this.angulo) * this.radio;
       this.rotacion += this.spin;
     } else {
-      // Física: posición = posición + velocidad
-      this.x   += this.vx;
-      this.y   += this.vy;
-      // Gravedad: cada frame la caída se acelera un poco
-      this.vy  += this.gravedad;
-      // Fricción del aire: la velocidad horizontal se frena
-      this.vx  *= 0.992;
+      this.x        += this.vx;
+      this.y        += this.vy;
+      this.vy       += this.gravedad;
+      this.vx       *= 0.992;
       this.rotacion += this.spin;
     }
   }
-
-  /* Dibuja el pétalo en el canvas */
   dibujar() {
-    ctx.save();                          // guarda estado del canvas
-    ctx.translate(this.x, this.y);      // mueve origen al centro del pétalo
-    ctx.rotate(this.rotacion);           // rota
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotacion);
     ctx.globalAlpha = this.opacidad;
     ctx.beginPath();
     const t = this.tamanio;
-    /* Forma de pétalo con curvas bezier:
-       bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY)
-       Los puntos de control definen la curvatura */
     ctx.moveTo(0, -t);
     ctx.bezierCurveTo( t*0.85, -t*0.5,  t*0.85,  t*0.5, 0,  t);
     ctx.bezierCurveTo(-t*0.85,  t*0.5, -t*0.85, -t*0.5, 0, -t);
     ctx.fillStyle = this.color;
     ctx.fill();
-    ctx.restore();                       // restaura estado
+    ctx.restore();
   }
-
   fueraDePantalla() {
     return this.x < -120 || this.x > W+120 || this.y < -120 || this.y > H+120;
   }
 }
 
-/* Crear 60 flores */
 const flores = Array.from({ length: 60 }, () => new Flor());
 let faseActual = 'orbita';
 
-/* Loop principal del canvas:
-   requestAnimationFrame llama a esta función ~60 veces por segundo.
-   Es más eficiente que setInterval porque el navegador lo sincroniza
-   con el repintado de pantalla. */
 function animarCanvas() {
-  ctx.clearRect(0, 0, W, H); // borrar el frame anterior
-
-  let hayFloresVisibles = false;
+  ctx.clearRect(0, 0, W, H);
+  let hay = false;
   flores.forEach(f => {
     f.actualizar();
-    if (!f.fueraDePantalla()) {
-      f.dibujar();
-      hayFloresVisibles = true;
-    }
+    if (!f.fueraDePantalla()) { f.dibujar(); hay = true; }
   });
-
-  /* Sigue el loop mientras estemos en órbita o haya flores visibles */
-  if (faseActual === 'orbita' || hayFloresVisibles) {
-    requestAnimationFrame(animarCanvas);
-  }
+  if (faseActual === 'orbita' || hay) requestAnimationFrame(animarCanvas);
 }
-requestAnimationFrame(animarCanvas); // arrancar
+requestAnimationFrame(animarCanvas);
 
 
-/* ════════════════════════════════════════════════════════════
-   PARTE 2: DETECTAR PRIMER SCROLL → DISPERSAR FLORES
-   
-   El body tiene overflow:hidden así que el scroll nativo
-   no funciona. Escuchamos 'wheel' (mouse) y 'touchmove' (móvil).
-   ════════════════════════════════════════════════════════════ */
+/* ── SCROLL ── */
+let introTerminado = false;
+let scrollObjetivo = 0;
+let scrollActual   = 0;
 
-let introTerminado = false; // bandera: ¿ya pasamos el intro?
-let scrollObjetivo = 0;     // posición destino del scroll virtual
-let scrollActual   = 0;     // posición actual (se interpola hacia el objetivo)
-
-/* SCROLL_TOTAL subido de 3200 → 4600 para las 3 estrofas nuevas.
-   El ritmo por estrofa se mantiene igual (~460px virtuales c/u). */
-const SCROLL_TOTAL = 4600;
-
-function dispersarYSalir() {
-  if (introTerminado) return; // ya ocurrió, no repetir
-  introTerminado = true;
-
-  /* Cambiar todas las flores a dispersión */
-  faseActual = 'dispersion';
-  flores.forEach(f => f.iniciarDispersion());
-
-  /* Fade out del intro via clase CSS */
-  document.getElementById('intro').classList.add('oculto');
-
-  /* Después de la transición CSS (1.4s), ocultar del todo y activar poema */
-  setTimeout(() => {
-    document.getElementById('intro').style.display = 'none';
-    requestAnimationFrame(actualizarPoema); // arrancar loop del poema
-  }, 1400);
-
-  /* Mostrar el divisor del poema con un pequeño retraso */
-  setTimeout(() => {
-    document.querySelector('.divisor').classList.add('visible');
-  }, 900);
-}
-
-/* Escuchar rueda del mouse */
-window.addEventListener('wheel', e => {
-  if (!introTerminado) {
-    dispersarYSalir();
-  } else {
-    /* Acumular scroll pero limitar entre 0 y SCROLL_TOTAL */
-    scrollObjetivo = Math.max(0, Math.min(SCROLL_TOTAL, scrollObjetivo + e.deltaY));
-  }
-}, { passive: true });
-
-/* Soporte touch (móvil) */
-let touchY = 0;
-window.addEventListener('touchstart', e => {
-  touchY = e.touches[0].clientY;
-}, { passive: true });
-window.addEventListener('touchmove', e => {
-  const delta = touchY - e.touches[0].clientY;
-  touchY = e.touches[0].clientY;
-  if (!introTerminado) {
-    dispersarYSalir();
-  } else {
-    scrollObjetivo = Math.max(0, Math.min(SCROLL_TOTAL, scrollObjetivo + delta));
-  }
-}, { passive: true });
-
-/* Soporte teclado (flechas y espacio) */
-window.addEventListener('keydown', e => {
-  const pasos = { ArrowDown: 200, ArrowUp: -200, Space: 300, PageDown: 600, PageUp: -600 };
-  const delta = pasos[e.code];
-  if (!delta) return;
-  e.preventDefault();
-  if (!introTerminado) {
-    dispersarYSalir();
-  } else {
-    scrollObjetivo = Math.max(0, Math.min(SCROLL_TOTAL, scrollObjetivo + delta));
-  }
-});
-
-
-/* ════════════════════════════════════════════════════════════
-   PARTE 3: SCROLL DEL POEMA CON LERP
-   
-   En vez de mover el DOM con scroll real, usamos transform.
-   La interpolación lineal (lerp) hace que el movimiento sea
-   suave en lugar de brusco.
-   ════════════════════════════════════════════════════════════ */
-
+/*
+  CLAVE: en vez de un SCROLL_TOTAL fijo, lo calculamos
+  en función de cuánto necesita viajar el contenido.
+  viajepx = alturaContenido - alturaVentana
+  SCROLL_TOTAL = viajepx * factor (para que el scroll se sienta natural)
+*/
 const poemaInner = document.getElementById('poema-inner');
 const estrofas   = document.querySelectorAll('.estrofa');
 const cierre     = document.querySelector('.cierre');
 const barra      = document.getElementById('barra-progreso');
 
-/* Con 9 estrofas y SCROLL_TOTAL=4600, el paso es ~460px virtuales.
-   querySelectorAll detecta automáticamente cuántas .estrofa hay,
-   así no hay que cambiar el JS si se agregan más en el futuro. */
-const PASO = SCROLL_TOTAL / (estrofas.length + 1);
+let SCROLL_TOTAL = 4000; // valor inicial, se recalcula al arrancar
+let viajeVH      = 0;    // cuántos vh tiene que viajar el bloque
+
+function calcularViaje() {
+  /*
+    alturaContenido = altura real del #poema-inner en px
+    alturaVentana   = window.innerHeight
+    Si el contenido mide 1800px y la ventana 900px,
+    el bloque necesita viajar 900px para que todo sea visible.
+    Expresado en vh: 900/900*100 = 100vh de viaje.
+    Agregamos padding de 10vh arriba y 10vh abajo.
+  */
+  const altContenido = poemaInner.scrollHeight;
+  const altVentana   = window.innerHeight;
+  const viajePx      = Math.max(0, altContenido - altVentana) + altVentana * 0.1;
+  viajeVH            = (viajePx / altVentana) * 100; // en vh
+
+  /* SCROLL_TOTAL proporcional al viaje real */
+  SCROLL_TOTAL = viajePx * 3.5;
+}
+
+function dispersarYSalir() {
+  if (introTerminado) return;
+  introTerminado = true;
+  faseActual = 'dispersion';
+  flores.forEach(f => f.iniciarDispersion());
+  document.getElementById('intro').classList.add('oculto');
+  setTimeout(() => {
+    document.getElementById('intro').style.display = 'none';
+    calcularViaje(); // medir el contenido real DESPUÉS de que el DOM está listo
+    /* Empezamos el bloque justo debajo de la ventana */
+    poemaInner.style.transform = `translateY(60vh)`;
+    requestAnimationFrame(actualizarPoema);
+  }, 1400);
+  setTimeout(() => {
+    document.querySelector('.divisor').classList.add('visible');
+  }, 900);
+}
+
+window.addEventListener('wheel', e => {
+  if (!introTerminado) { dispersarYSalir(); return; }
+  scrollObjetivo = Math.max(0, Math.min(SCROLL_TOTAL, scrollObjetivo + e.deltaY));
+}, { passive: true });
+
+let touchY = 0;
+window.addEventListener('touchstart', e => { touchY = e.touches[0].clientY; }, { passive: true });
+window.addEventListener('touchmove', e => {
+  const delta = touchY - e.touches[0].clientY;
+  touchY = e.touches[0].clientY;
+  if (!introTerminado) { dispersarYSalir(); return; }
+  scrollObjetivo = Math.max(0, Math.min(SCROLL_TOTAL, scrollObjetivo + delta));
+}, { passive: true });
+
+window.addEventListener('keydown', e => {
+  const pasos = { ArrowDown: 200, ArrowUp: -200, Space: 300, PageDown: 600, PageUp: -600 };
+  const delta = pasos[e.code];
+  if (!delta) return;
+  e.preventDefault();
+  if (!introTerminado) { dispersarYSalir(); return; }
+  scrollObjetivo = Math.max(0, Math.min(SCROLL_TOTAL, scrollObjetivo + delta));
+});
+
+
+/* ── LOOP DEL POEMA ── */
+const PASO_ESTROFAS = 1 / (estrofas.length + 1); // fracción del scroll total por estrofa
 
 function actualizarPoema() {
-  /* ── LERP (interpolación lineal) ──────────────────────────
-     En vez de saltar directo al objetivo, nos acercamos un 8%
-     cada frame. Esto crea el efecto de "inercia" suave.
-     Fórmula: actual = actual + (objetivo - actual) * factor
-     Con factor=0.08: si hay 100px de distancia, este frame
-     nos acercamos 8px, el siguiente 7.4px, etc. (exponencial) */
   scrollActual += (scrollObjetivo - scrollActual) * 0.08;
 
-  /* ── Mover el contenedor del poema ────────────────────────
-     Empieza en 80vh (abajo de pantalla), termina en -40vh (arriba).
-     El rango es 120vh para los SCROLL_TOTAL píxeles virtuales. */
-  const vh = 80 - (scrollActual / SCROLL_TOTAL) * 200;
-  poemaInner.style.transform = `translateY(${vh}vh)`;
+  /*
+    Progreso: valor entre 0 y 1
+    0 = inicio (bloque empieza en 100vh, abajo de pantalla)
+    1 = final   (bloque termina con su último elemento visible)
+  */
+  const progreso = scrollActual / SCROLL_TOTAL;
 
-  /* ── Barra de progreso ─────────────────────────────────── */
-  barra.style.height = Math.min(100, (scrollActual / SCROLL_TOTAL) * 100) + '%';
+  /*
+    translateY va de +100vh (abajo, fuera) a (100 - viajeVH)vh
+    Cuando progreso=0 → translateY = 100vh  (todo abajo, invisible)
+    Cuando progreso=1 → translateY = 100-viajeVH vh (todo subido el viaje exacto)
+  */
+  const ty = 10 - progreso * (60 + viajeVH);
+  poemaInner.style.transform = `translateY(${ty}vh)`;
 
-  /* ── Visibilidad de cada estrofa ───────────────────────────
-     Cada estrofa tiene un rango de scroll en el que es visible.
-     Fuera de ese rango, desaparece (hacia abajo o hacia arriba). */
+  /* Barra de progreso */
+  barra.style.height = Math.min(100, progreso * 100) + '%';
+
+  /* Visibilidad de estrofas según progreso */
   estrofas.forEach((estrofa, i) => {
-    const aparece    = PASO * (i + 0.4); // scroll en que aparece
-    const desaparece = PASO * (i + 4.5); // scroll en que desaparece
-
-    if (scrollActual > aparece && scrollActual < desaparece) {
-      /* Dentro del rango: visible */
+    const aparece    = PASO_ESTROFAS * (i + 0.3);
+    const desaparece = PASO_ESTROFAS * (i + 3.5);
+    if (progreso > aparece && progreso < desaparece) {
       estrofa.classList.remove('saliendo');
       estrofa.classList.add('visible');
-    } else if (scrollActual >= desaparece) {
-      /* Ya pasó: sale hacia arriba */
+    } else if (progreso >= desaparece) {
       estrofa.classList.remove('visible');
       estrofa.classList.add('saliendo');
     } else {
-      /* Aún no llega: estado inicial (invisible abajo) */
       estrofa.classList.remove('visible', 'saliendo');
     }
   });
 
-  /* ── Cierre al final ───────────────────────────────────── */
-  if (scrollActual > SCROLL_TOTAL * 0.86) {
+  /* Cierre */
+  if (progreso > 0.88) {
     cierre.classList.add('visible');
   } else {
     cierre.classList.remove('visible');
   }
 
-  /* Continuar el loop */
   requestAnimationFrame(actualizarPoema);
 }
-
-/* Nota: actualizarPoema() arranca solo cuando introTerminado=true,
-   llamado desde el setTimeout dentro de dispersarYSalir() */
-
 </script>
 </body>
 </html>
